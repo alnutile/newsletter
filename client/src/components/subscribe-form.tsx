@@ -30,17 +30,23 @@ export function SubscribeForm() {
 
   const onSubmit = async (data: SubscribeFormData) => {
     try {
-      const formData = new FormData();
-      formData.append("email", data.email);
-      if (data.name) formData.append("name", data.name);
-      formData.append("l", data.listId);
+      const params = new URLSearchParams();
+      params.append('email', data.email);
+      if (data.name) params.append('name', data.name);
+      params.append('l', data.listId);
 
-      const response = await fetch("https://newsletter.dailyai.studio/subscription/form", {
-        method: "POST",
-        body: formData
+      const response = await fetch('https://newsletter.dailyai.studio/subscription/form', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: params,
       });
 
-      if (!response.ok) throw new Error("Subscription failed");
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || 'Subscription failed');
+      }
 
       toast({
         title: "Success!",
@@ -48,9 +54,10 @@ export function SubscribeForm() {
       });
       form.reset();
     } catch (error) {
+      console.error('Subscription error:', error);
       toast({
         title: "Error",
-        description: "Failed to subscribe. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to subscribe. Please try again.",
         variant: "destructive",
       });
     }
